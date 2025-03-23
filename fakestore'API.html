@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="../node_modules/bootstrap/dist/css/bootstrap.css">
+    <script src="../node_modules/bootstrap/dist/js/bootstrap.bundle.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <script>
+        var  changedCategorie ="";
+        function categorieChange(){
+           changedCategorie = document.getElementById("lblSelect").value;
+           
+           if (changedCategorie ==="ALL") {
+            var chng="products";
+            cardload(`https://fakestoreapi.com/${chng}`);
+            
+        } else {
+
+            cardload(`https://fakestoreapi.com/products/category/${changedCategorie}`);
+            
+        }
+
+        }
+      
+        
+        function cardload(url){
+            document.getElementById("present").innerHTML="";
+            
+            fetch(url)
+            .then(function(response){
+                return response.json();
+            })
+            .then(function(load){
+                load.map(function(loadData){
+                    var div = document.createElement("div");
+                    div.style.width="300px";
+                    div.style.height="550px";
+                    div.innerHTML = `
+                  <div class="card m-2 p-2">
+                      <img class="card-img-top" src=${loadData.image} widht="250px" height="220px">
+                      <div class="card-header">
+                        price = ${loadData.price.toLocaleString("en-us",{style:"currency",currency:"USD"})}
+                      </div>
+                      <div class="card-body">
+                      <dl>
+                        <dt>
+                            Category.
+                        </dt>
+                        <dd>
+                             ${loadData.category}
+                        </dd>
+                        <dt>
+                            Rating 
+                        </dt>
+                        <dd class="bg-success w-25 text-center text-white rounded-3">
+                             ${loadData.rating.rate} <span class=" bi bi-star-fill "></span>
+                        </dd>
+                        <dt>
+                            Count 
+                        </dt>
+                        <dd class="">
+                             ${loadData.rating.count} 
+                        </dd>
+                       
+                      </dl>
+
+                      </div>
+                      <div class="card-footer">
+                          <button onclick="addCard(${loadData.id})" class="bg-warning text-white text-center w-100 rounded-4">
+                             Add to cart
+                          </button>
+
+                      </div>
+
+
+                  </div>  
+
+                    `
+                    document.getElementById("present").appendChild(div);
+                })
+            })
+        }
+        function bodyload(){
+            fetch("https://fakestoreapi.com/products/categories")
+            .then(function(response){
+                return response.json();
+            })
+            .then(function(catego){
+                catego.unshift("ALL");
+                catego.map(function(categori){
+
+                    var opt = document.createElement("option");
+                    opt.text = categori;
+                    opt.value = categori;
+                    document.getElementById("lblSelect").appendChild(opt);
+                   
+                })
+            })
+            cardload('https://fakestoreapi.com/products');
+
+        }
+        var cartArray = [];
+        function addCard(id){
+            fetch(`https://fakestoreapi.com/products/${id}`)
+            .then(function(response){
+                return response.json();
+            })
+            .then(function(cartFetch){
+                cartArray.push(cartFetch);
+                document.getElementById("badge").innerHTML=cartArray.length;
+
+            })
+
+        }
+        function writeItms(){
+              var itm =0;
+            document.getElementById("modalBody").innerHTML="";
+            cartArray.map(function(writeItm){
+                 
+                var div = document.createElement("div");
+                div.innerHTML=`
+                 <div class="row my-3"> <hr>
+                    <div class="col"> ${writeItm.category}</div>
+                    <img class="col" src="${writeItm.image}" height="65px" width="25px" >
+                    <div class="col">${writeItm.price.toLocaleString("en-us",{style:"currency",currency:"USD"})}</div>
+                    
+                </div>
+               
+                
+                `
+                
+                 document.getElementById("totalPrice").innerHTML=(itm=itm+writeItm.price);
+                ;
+                 
+                 document.getElementById("modalBody").appendChild(div);
+               
+
+                
+            })
+        }
+
+    </script>
+    
+</head>
+
+<body onload="bodyload()">
+    <header class="d-flex flex-row justify-content-evenly mt-2 py-3 border border-1">
+        <div class="fs-3 text-primary">
+            FAKESTORE.
+        </div>
+        <div class="fs-4 text-decoration-none">
+            <span><a class="text-decoration-none" href="javascript:cardload('https://fakestoreapi.com/products')">Home</a></span>
+            <span><a class="text-decoration-none px-4" href="javascript:cardload('https://fakestoreapi.com/products/category/electronics')">Electronics</a></span>
+            <span><a class="text-decoration-none" href="javascript:cardload('https://fakestoreapi.com/products/category/jewelery')">jewelery</a></span>
+            <span><a class="text-decoration-none px-4" href="javascript:cardload('https://fakestoreapi.com/products/category/women\'s clothing')">Women's_Fashion</a></span>
+        </div>
+        <button  onclick="writeItms()" data-bs-target="#cartItm" data-bs-toggle="modal" class="bi bi-cart4 fs-4 bg-warning px-1 position-relative rounded-3"><span  class="bg-danger rounded-circle text-white position-absolute px-1 top-0  badge" id="badge"></span></button>
+
+    </header>
+    <section class="row">
+        <div class="col-2 ">
+            <select class="ms-5" onchange="categorieChange()" id="lblSelect"></select>
+        </div>
+        <div id="present" class="col-10 d-flex flex-row flex-wrap overflow-hidden">
+            
+        </div>
+<img class="col" src="" alt="">
+    </section>
+    
+    
+    <div class="modal" tabindex="-1" id="cartItm">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Your cart items</h5>
+        <button  type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"> </button>
+      </div>
+      <div class="modal-body" >
+       <div id="modalBody" class="row">
+            <div class="col"> Product</div>
+            <div class="col"> image</div>
+            <div class="col"> price</div>
+       </div>
+      </div>
+      <div class="modal-footer d-flex flex-column">
+        <div class="row">
+          <div style="column-span: 3;">
+              
+            <div  class="">Total amount</div>
+            <div class="" id="totalPrice"></div>
+          </div>
+        </div>
+        <div class="row">
+             <button type="button" class="btn btn-primary col" data-bs-dismiss="modal">Add more</button>
+        <button type="button" class="btn btn-warning col" data-bs-dismiss="modal">Place order</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
